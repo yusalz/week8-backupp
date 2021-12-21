@@ -1,12 +1,32 @@
 import express from 'express';
-import bodyParser from 'body-parser';
-import {createReadStream} from 'fs';
-import crypto from 'crypto';
-import http from 'http';
-import appSrc from './app.js';
-import {MongoClient} from 'mongodb';
-import puppeteer from 'puppeteer'
-const app = appSrc(express, bodyParser, createReadStream, crypto, http, MongoClient, puppeteer);
-app.listen(process.env.PORT || 3000, function() {
-    console.log('server running on port 3000', '');
-});
+import axios from 'axios';
+
+const PORT = process.env.PORT || 4321;
+
+const app = express();
+app.get('/wordpress/', async (req, res, next) => { 
+    const content = req.query.content; 
+    const resp = await axios.post(
+        'https://wordpress.kodaktor.ru/wp-json/jwt-auth/v1/token', 
+        { username: 'gossjsstudent2017', password: '|||123|||456' }, 
+    ); 
+    const token = resp.data.token;
+    
+    const wpRes = await axios.post(
+        'https://wordpress.kodaktor.ru/wp-json/wp/v2/posts', 
+        { content, title: 'itmo309692', status: 'publish' },
+        { 
+            headers: { 
+                Authorization: `Bearer ${token}`, 
+            }, 
+        }, 
+    ); 
+    
+    res.send(wpRes.data.id + '');
+    })
+
+    .all("/login", (r) => r.res.send("itmo309692"))
+
+    .listen(PORT, ()=>{
+        console.log('server is listening');
+    });
